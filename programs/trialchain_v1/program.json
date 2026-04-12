@@ -1,0 +1,6 @@
+{
+  "program": "trialchain_v1.aleo",
+  "version": "0.1.0",
+  "description": "Privacy-preserving clinical trial protocol on Aleo",
+  "license": "MIT"
+}
