@@ -1,1 +1,10 @@
-{}
+{
+  "/_not-found/page": "app/_not-found/page.js",
+  "/trials/page": "app/trials/page.js",
+  "/patient/page": "app/patient/page.js",
+  "/page": "app/page.js",
+  "/results/page": "app/results/page.js",
+  "/sponsor/page": "app/sponsor/page.js",
+  "/verify/page": "app/verify/page.js",
+  "/history/page": "app/history/page.js"
+}
