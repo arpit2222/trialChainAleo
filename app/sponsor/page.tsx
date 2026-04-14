@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { useWallet } from "@demox-labs/aleo-wallet-adapter-react";
+import { useWallet } from "@provablehq/aleo-wallet-adaptor-react";
 import { useTrialChain } from "@/hooks/useTrialChain";
 import { usePolling } from "@/hooks/usePolling";
 import { useWalletRecords } from "@/hooks/useWalletRecords";
@@ -16,7 +16,7 @@ import { toast } from "sonner";
 import { FlaskConical, Loader2, Plus } from "lucide-react";
 
 export default function SponsorPage() {
-  const { publicKey } = useWallet();
+  const { connected, address } = useWallet();
   const { registerTrial } = useTrialChain();
   const { txState, startPolling } = usePolling();
   const { sponsorKeys, refetch } = useWalletRecords();
@@ -33,7 +33,7 @@ export default function SponsorPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!publicKey) {
+    if (!connected) {
       toast.error("Connect your wallet first.");
       return;
     }
@@ -44,8 +44,12 @@ export default function SponsorPage() {
 
     try {
       setSubmitting(true);
+      console.log("[Sponsor] Starting trial registration...");
+
       const trialId = generateRandomField();
       const preCommittedResultHash = generateRandomField();
+      console.log("[Sponsor] Generated trialId:", trialId);
+      console.log("[Sponsor] Connected wallet address:", address);
 
       const { txId } = await registerTrial({
         trialId,
@@ -60,16 +64,24 @@ export default function SponsorPage() {
         preCommittedResultHash,
       });
 
+      // Save trial title to localStorage for display
+      const trialTitles = JSON.parse(localStorage.getItem('trialTitles') || '{}');
+      trialTitles[trialId] = title;
+      localStorage.setItem('trialTitles', JSON.stringify(trialTitles));
+
       startPolling(txId);
       toast.success("Trial registration submitted!");
     } catch (err: any) {
+      console.error("[Sponsor] Registration error:", err);
+      console.error("[Sponsor] Error name:", err?.name);
+      console.error("[Sponsor] Error message:", err?.message);
       toast.error(err.message || "Registration failed.");
     } finally {
       setSubmitting(false);
     }
   };
 
-  if (!publicKey) {
+  if (!connected) {
     return (
       <div className="flex min-h-[60vh] items-center justify-center">
         <p className="text-zinc-500">Connect your wallet to register a trial.</p>

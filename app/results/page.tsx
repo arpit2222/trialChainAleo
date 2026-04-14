@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { useWallet } from "@demox-labs/aleo-wallet-adapter-react";
+import { useWallet } from "@provablehq/aleo-wallet-adaptor-react";
 import { useTrialChain } from "@/hooks/useTrialChain";
 import { useWalletRecords } from "@/hooks/useWalletRecords";
 import { usePolling } from "@/hooks/usePolling";
@@ -16,15 +16,13 @@ import { toast } from "sonner";
 import { FileText, Loader2, Upload } from "lucide-react";
 
 export default function ResultsPage() {
-  const { publicKey } = useWallet();
+  const { connected } = useWallet();
   const { commitResults } = useTrialChain();
   const { sponsorKeys } = useWalletRecords();
   const { txState, startPolling } = usePolling();
 
   const [trialId, setTrialId] = useState("");
   const [resultHash, setResultHash] = useState<string | null>(null);
-  const [positiveCount, setPositiveCount] = useState(0);
-  const [negativeCount, setNegativeCount] = useState(0);
   const [submitting, setSubmitting] = useState(false);
 
   const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -56,9 +54,7 @@ export default function ResultsPage() {
       const txId = await commitResults(
         sponsorKey.plaintext,
         trialId,
-        resultHash,
-        positiveCount,
-        negativeCount
+        resultHash
       );
       startPolling(txId);
       toast.success("Result commitment submitted!");
@@ -69,7 +65,7 @@ export default function ResultsPage() {
     }
   };
 
-  if (!publicKey) {
+  if (!connected) {
     return (
       <div className="flex min-h-[60vh] items-center justify-center">
         <p className="text-zinc-500">Connect your wallet to post results.</p>
@@ -118,27 +114,6 @@ export default function ResultsPage() {
                 {resultHash.slice(0, 20)}...
               </span>
             )}
-          </div>
-        </div>
-
-        <div className="grid grid-cols-2 gap-4">
-          <div className="space-y-2">
-            <Label>Positive Outcomes</Label>
-            <Input
-              type="number"
-              value={positiveCount}
-              onChange={(e) => setPositiveCount(Number(e.target.value))}
-              className="bg-white/5 border-white/10"
-            />
-          </div>
-          <div className="space-y-2">
-            <Label>Negative Outcomes</Label>
-            <Input
-              type="number"
-              value={negativeCount}
-              onChange={(e) => setNegativeCount(Number(e.target.value))}
-              className="bg-white/5 border-white/10"
-            />
           </div>
         </div>
 

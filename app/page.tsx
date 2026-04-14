@@ -1,8 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import { useWallet } from "@demox-labs/aleo-wallet-adapter-react";
-import { WalletMultiButton } from "@demox-labs/aleo-wallet-adapter-reactui";
+import { useWallet } from "@provablehq/aleo-wallet-adaptor-react";
+import { WalletMultiButton } from "@provablehq/aleo-wallet-adaptor-react-ui";
 import { motion } from "framer-motion";
 import {
   Shield,
@@ -38,7 +38,7 @@ const features = [
 ];
 
 export default function LandingPage() {
-  const { publicKey } = useWallet();
+  const { connected } = useWallet();
 
   return (
     <div className="relative overflow-hidden">
@@ -63,7 +63,7 @@ export default function LandingPage() {
             results, and compensation flows privately via USDCx.
           </p>
           <div className="mt-8 flex items-center justify-center gap-4 flex-wrap">
-            {publicKey ? (
+            {connected ? (
               <>
                 <Button asChild size="lg" className="bg-emerald-600 hover:bg-emerald-500">
                   <Link href="/patient">

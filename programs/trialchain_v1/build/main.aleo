@@ -223,3 +223,6 @@ function verify_enrollment:
     assert.eq r3 true;
     hash.bhp256 r0.nullifier into r4 as field;
     output r4 as field.private;
+
+constructor:
+    assert.eq edition 0u16;

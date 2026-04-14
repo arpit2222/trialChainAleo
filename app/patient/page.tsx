@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { useWallet } from "@demox-labs/aleo-wallet-adapter-react";
+import { useWallet } from "@provablehq/aleo-wallet-adaptor-react";
 import { useWalletRecords } from "@/hooks/useWalletRecords";
 import { CredentialDisplay } from "@/components/CredentialDisplay";
 import { Card } from "@/components/ui/card";
@@ -18,10 +18,10 @@ import {
 } from "lucide-react";
 
 export default function PatientPage() {
-  const { publicKey } = useWallet();
+  const { connected, address } = useWallet();
   const { credentials, receipts, loading, refetch } = useWalletRecords();
 
-  if (!publicKey) {
+  if (!connected) {
     return (
       <div className="flex min-h-[60vh] items-center justify-center">
         <p className="text-zinc-500">Connect your wallet to view your records.</p>
@@ -71,7 +71,7 @@ export default function PatientPage() {
                 PatientCredential to your wallet address.
               </p>
               <p className="text-xs text-zinc-600 mt-2 font-mono">
-                {publicKey}
+                {address}
               </p>
             </Card>
           ) : (

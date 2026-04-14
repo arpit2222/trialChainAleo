@@ -1,25 +1,8 @@
-import { Transaction, WalletAdapterNetwork } from "@demox-labs/aleo-wallet-adapter-base";
 import { PROGRAM_ID } from "@/constants/program";
-
-export function buildTransaction(
-  publicKey: string,
-  functionName: string,
-  inputs: string[],
-  fee: number = 150_000
-): Transaction {
-  return Transaction.createTransaction(
-    publicKey,
-    WalletAdapterNetwork.Testnet,
-    PROGRAM_ID,
-    functionName,
-    inputs,
-    fee
-  );
-}
 
 export async function getCurrentBlockHeight(): Promise<number> {
   const res = await fetch(
-    "https://api.testnet.provable.com/v0/testnet/latest/height"
+    "https://api.explorer.provable.com/v1/testnet/latest/height"
   );
   if (!res.ok) throw new Error("Failed to fetch block height");
   const height = await res.json();

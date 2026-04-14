@@ -9,11 +9,13 @@
     "lint": "next lint"
   },
   "dependencies": {
-    "@demox-labs/aleo-wallet-adapter-base": "^0.0.21",
-    "@demox-labs/aleo-wallet-adapter-leo": "^0.0.21",
-    "@demox-labs/aleo-wallet-adapter-react": "^0.0.21",
-    "@demox-labs/aleo-wallet-adapter-reactui": "^0.0.21",
     "@hookform/resolvers": "^5.2.2",
+    "@provablehq/aleo-types": "^0.3.0-alpha.3",
+    "@provablehq/aleo-wallet-adaptor-core": "^0.3.0-alpha.3",
+    "@provablehq/aleo-wallet-adaptor-leo": "^0.3.0-alpha.3",
+    "@provablehq/aleo-wallet-adaptor-react": "^0.3.0-alpha.3",
+    "@provablehq/aleo-wallet-adaptor-react-ui": "^0.3.0-alpha.3",
+    "@provablehq/aleo-wallet-adaptor-shield": "^0.3.0-alpha.3",
     "@provablehq/sdk": "^0.7.0",
     "@radix-ui/react-avatar": "^1.1.11",
     "@radix-ui/react-dialog": "^1.1.15",

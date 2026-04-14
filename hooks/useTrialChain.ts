@@ -1,15 +1,33 @@
-import { useWallet } from "@demox-labs/aleo-wallet-adapter-react";
-import { Transaction, WalletAdapterNetwork } from "@demox-labs/aleo-wallet-adapter-base";
+import { useWallet } from "@provablehq/aleo-wallet-adaptor-react";
+import { useCallback } from "react";
 import { PROGRAM_ID } from "@/constants/program";
 import { hashString, generateRandomField } from "@/lib/crypto";
 import { getCurrentBlockHeight, fieldInput, u8Input, u32Input, u64Input } from "@/lib/aleo";
 import type { RegisterTrialInput, IssueCredentialInput } from "@/types";
 
+// Helper to save transaction to localStorage history
+const saveTransaction = (
+  txId: string,
+  type: "register_trial" | "enroll_patient" | "issue_credential" | "commit_results" | "verify_enrollment",
+  status: "pending" | "confirmed" | "rejected" = "pending",
+  extra?: { trialId?: string; trialTitle?: string }
+) => {
+  const stored = JSON.parse(localStorage.getItem('trialChainTransactions') || '[]');
+  stored.push({
+    id: txId,
+    type,
+    status,
+    timestamp: Date.now(),
+    ...extra,
+  });
+  localStorage.setItem('trialChainTransactions', JSON.stringify(stored));
+};
+
 export function useTrialChain() {
-  const { publicKey, requestTransaction, requestRecords } = useWallet();
+  const { connected, address, executeTransaction, requestRecords } = useWallet();
 
   const registerTrial = async (params: RegisterTrialInput) => {
-    if (!publicKey || !requestTransaction)
+    if (!connected || !executeTransaction)
       throw new Error("Wallet not connected");
 
     const conditionHash = await hashString(params.conditionCode);
@@ -34,43 +52,76 @@ export function useTrialChain() {
       fieldInput(params.preCommittedResultHash),
     ];
 
-    const tx = Transaction.createTransaction(
-      publicKey,
-      WalletAdapterNetwork.Testnet,
-      PROGRAM_ID,
-      "register_trial",
-      inputs,
-      150_000
-    );
+    console.log("[TrialChain] register_trial inputs:", inputs);
 
-    const txId = await requestTransaction(tx);
-    return { txId, resultCommitmentSalt };
+    let tx;
+    try {
+      tx = await executeTransaction({
+        program: PROGRAM_ID,
+        function: "register_trial",
+        inputs,
+        fee: 3_000_000,
+      });
+    } catch (execErr: any) {
+      console.error("[TrialChain] executeTransaction error:", execErr);
+      console.error("[TrialChain] Error name:", execErr?.name);
+      console.error("[TrialChain] Error message:", execErr?.message);
+      console.error("[TrialChain] Full error object:", JSON.stringify(execErr, null, 2));
+      throw new Error(`Wallet execution failed: ${execErr?.message || 'Unknown error'}`);
+    }
+
+    console.log("[TrialChain] register_trial response:", tx);
+
+    if (!tx?.transactionId) {
+      throw new Error("Wallet did not return a transaction ID. Check wallet for errors.");
+    }
+
+    // Save to transaction history
+    saveTransaction(tx.transactionId, "register_trial", "pending", {
+      trialId: params.trialId,
+      trialTitle: params.title,
+    });
+
+    return { txId: tx.transactionId, resultCommitmentSalt };
   };
 
   const enrollPatient = async (
     credentialRecord: string,
-    trialId: string
+    trialId: string,
+    expectedMinAge: number,
+    expectedMaxAge: number,
+    expectedConditionHash: string,
+    expectedCompensation: bigint
   ) => {
-    if (!publicKey || !requestTransaction)
+    if (!connected || !executeTransaction)
       throw new Error("Wallet not connected");
 
-    const enrollmentSalt = generateRandomField();
-    const inputs = [credentialRecord, fieldInput(trialId), fieldInput(enrollmentSalt)];
+    const inputs = [
+      credentialRecord,
+      fieldInput(trialId),
+      u8Input(expectedMinAge),
+      u8Input(expectedMaxAge),
+      fieldInput(expectedConditionHash),
+      u64Input(expectedCompensation),
+    ];
 
-    const tx = Transaction.createTransaction(
-      publicKey,
-      WalletAdapterNetwork.Testnet,
-      PROGRAM_ID,
-      "enroll_patient",
+    const tx = await executeTransaction({
+      program: PROGRAM_ID,
+      function: "enroll_patient",
       inputs,
-      200_000
-    );
+      fee: 3_000_000,
+    });
 
-    return await requestTransaction(tx);
+    const txId = tx?.transactionId || "";
+    if (txId) {
+      saveTransaction(txId, "enroll_patient", "pending", { trialId });
+    }
+
+    return txId;
   };
 
   const issueCredential = async (params: IssueCredentialInput) => {
-    if (!publicKey || !requestTransaction)
+    if (!connected || !executeTransaction)
       throw new Error("Wallet not connected");
 
     const conditionHash = await hashString(params.conditionCode);
@@ -82,97 +133,65 @@ export function useTrialChain() {
       fieldInput(conditionHash),
       u64Input(params.labValue),
       fieldInput(credentialId),
-      u32Input(params.expiryBlocks),
     ];
 
-    const tx = Transaction.createTransaction(
-      publicKey,
-      WalletAdapterNetwork.Testnet,
-      PROGRAM_ID,
-      "issue_credential",
+    const tx = await executeTransaction({
+      program: PROGRAM_ID,
+      function: "issue_credential",
       inputs,
-      100_000
-    );
+      fee: 500_000,
+    });
 
-    return await requestTransaction(tx);
+    return tx?.transactionId || "";
   };
 
   const commitResults = async (
     sponsorKeyRecord: string,
     trialId: string,
-    resultHash: string,
-    positiveCount: number,
-    negativeCount: number
+    resultHash: string
   ) => {
-    if (!publicKey || !requestTransaction)
+    if (!connected || !executeTransaction)
       throw new Error("Wallet not connected");
 
     const inputs = [
       sponsorKeyRecord,
       fieldInput(trialId),
       fieldInput(resultHash),
-      u32Input(positiveCount),
-      u32Input(negativeCount),
     ];
 
-    const tx = Transaction.createTransaction(
-      publicKey,
-      WalletAdapterNetwork.Testnet,
-      PROGRAM_ID,
-      "commit_results",
+    const tx = await executeTransaction({
+      program: PROGRAM_ID,
+      function: "commit_results",
       inputs,
-      150_000
-    );
+      fee: 3_000_000,
+    });
 
-    return await requestTransaction(tx);
-  };
-
-  const claimCompensation = async (
-    receiptRecord: string,
-    usdcRecord: string
-  ) => {
-    if (!publicKey || !requestTransaction)
-      throw new Error("Wallet not connected");
-
-    const inputs = [receiptRecord, usdcRecord];
-
-    const tx = Transaction.createTransaction(
-      publicKey,
-      WalletAdapterNetwork.Testnet,
-      PROGRAM_ID,
-      "claim_compensation",
-      inputs,
-      150_000
-    );
-
-    return await requestTransaction(tx);
+    return tx?.transactionId || "";
   };
 
   const verifyEnrollment = async (
     receiptRecord: string,
     trialId: string
   ) => {
-    if (!publicKey || !requestTransaction)
+    if (!connected || !executeTransaction)
       throw new Error("Wallet not connected");
 
     const inputs = [receiptRecord, fieldInput(trialId)];
 
-    const tx = Transaction.createTransaction(
-      publicKey,
-      WalletAdapterNetwork.Testnet,
-      PROGRAM_ID,
-      "verify_enrollment",
+    const tx = await executeTransaction({
+      program: PROGRAM_ID,
+      function: "verify_enrollment",
       inputs,
-      100_000
-    );
+      fee: 500_000,
+    });
 
-    return await requestTransaction(tx);
+    return tx?.transactionId || "";
   };
 
   const getMyRecords = async (
     filterType?: string
   ): Promise<any[]> => {
-    if (!publicKey || !requestRecords) return [];
+    if (!connected || !requestRecords) return [];
     try {
       const records = await requestRecords(PROGRAM_ID);
       if (!filterType) return records;
@@ -190,10 +209,9 @@ export function useTrialChain() {
     enrollPatient,
     issueCredential,
     commitResults,
-    claimCompensation,
     verifyEnrollment,
     getMyRecords,
-    isConnected: !!publicKey,
-    walletAddress: publicKey,
+    isConnected: connected,
+    walletAddress: address,
   };
 }

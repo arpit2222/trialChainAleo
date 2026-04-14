@@ -49,11 +49,8 @@ export interface PatientCredential {
   age: number;
   condition_hash: string;
   lab_value: number;
-  issued_block: number;
-  expiry_block: number;
   credential_id: string;
   _nonce: string;
-  // raw record plaintext from wallet
   _raw?: string;
 }
 
@@ -61,10 +58,8 @@ export interface PatientCredential {
 export interface EnrollmentReceipt {
   owner: string;
   trial_id: string;
-  enrolled_block: number;
   nullifier: string;
   compensation_usdc: number;
-  phase: number;
   _nonce: string;
   _raw?: string;
 }
@@ -74,18 +69,6 @@ export interface SponsorKey {
   owner: string;
   trial_id: string;
   salt: string;
-  registered_block: number;
-  _nonce: string;
-  _raw?: string;
-}
-
-// Matches Leo CompensationReceipt record (private)
-export interface CompensationReceipt {
-  owner: string;
-  trial_id: string;
-  amount_usdc: number;
-  paid_block: number;
-  nullifier: string;
   _nonce: string;
   _raw?: string;
 }
@@ -110,12 +93,12 @@ export interface IssueCredentialInput {
   age: number;
   conditionCode: string; // ICD-10 — hashed client-side
   labValue: number;
-  expiryBlocks: number;
 }
 
 // Transaction polling state
 export interface TxState {
   txId: string | null;
+  onchainTxId?: string | null;
   status: "idle" | "pending" | "confirmed" | "rejected";
   error?: string;
 }

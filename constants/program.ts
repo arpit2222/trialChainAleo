@@ -4,7 +4,7 @@ export const PROGRAM_ID =
 export const NETWORK = process.env.NEXT_PUBLIC_NETWORK ?? "testnet";
 
 export const API_URL =
-  process.env.NEXT_PUBLIC_API_URL ?? "https://api.testnet.provable.com/v0";
+  process.env.NEXT_PUBLIC_API_URL ?? "https://api.explorer.provable.com/v1";
 
 export const USDCX_PROGRAM =
   process.env.NEXT_PUBLIC_USDCX_PROGRAM ?? "test_usdcx_stablecoin.aleo";

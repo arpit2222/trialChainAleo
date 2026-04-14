@@ -262,4 +262,11 @@ program trialchain_v1.aleo {
         assert(receipt.trial_id == trial_id);
         return BHP256::hash_to_field(receipt.nullifier);
     }
+
+    // ========================================================
+    // Constructor — required for deployment (non-upgradable)
+    // ========================================================
+    @noupgrade
+    constructor() {
+    }
 }

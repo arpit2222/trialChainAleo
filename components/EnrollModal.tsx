@@ -13,6 +13,7 @@ import {
 } from "@/components/ui/dialog";
 import { toast } from "sonner";
 import { Loader2, ShieldCheck, CheckCircle2, XCircle } from "lucide-react";
+import { hashString } from "@/lib/crypto";
 import type { Trial } from "@/types";
 
 interface EnrollModalProps {
@@ -33,16 +34,39 @@ export function EnrollModal({
   const { enrollPatient } = useTrialChain();
   const { txState, startPolling, reset } = usePolling();
   const [submitting, setSubmitting] = useState(false);
+  const [demoMode, setDemoMode] = useState(false);
 
   const handleEnroll = async () => {
-    if (!credentialRecord) {
+    if (!credentialRecord && !demoMode) {
       toast.error("No credential found. Ask a hospital to issue one.");
+      return;
+    }
+
+    // Demo mode: show simulated success without actual transaction
+    if (demoMode) {
+      setSubmitting(true);
+      setTimeout(() => {
+        toast.success("Demo: Enrollment would succeed with valid credential!");
+        setSubmitting(false);
+      }, 1500);
       return;
     }
 
     try {
       setSubmitting(true);
-      const txId = await enrollPatient(credentialRecord, trial.id);
+      const conditionHash = trial.requiredConditionHash !== "0"
+        ? trial.requiredConditionHash
+        : await hashString("");
+      const compensationMicros = BigInt(trial.compensationUsdc) * 1_000_000n;
+
+      const txId = await enrollPatient(
+        credentialRecord || "",
+        trial.id,
+        trial.minAge,
+        trial.maxAge,
+        conditionHash,
+        compensationMicros
+      );
       startPolling(txId);
       toast.info("ZK proof submitted — waiting for confirmation...");
     } catch (err: any) {
@@ -93,7 +117,21 @@ export function EnrollModal({
             </p>
           </div>
 
-          {!credentialRecord && (
+          {/* Demo mode checkbox */}
+          <div className="flex items-center gap-2">
+            <input
+              type="checkbox"
+              id="demoMode"
+              checked={demoMode}
+              onChange={(e) => setDemoMode(e.target.checked)}
+              className="w-4 h-4 rounded border-white/20 bg-white/5 text-emerald-500 focus:ring-emerald-500"
+            />
+            <label htmlFor="demoMode" className="text-xs text-zinc-400 cursor-pointer">
+              Demo Mode (skip credential requirement)
+            </label>
+          </div>
+
+          {!credentialRecord && !demoMode && (
             <p className="text-sm text-amber-400">
               ⚠ No PatientCredential found in your wallet. You need a credential
               issued by a hospital/IRB before enrolling.
@@ -145,7 +183,7 @@ export function EnrollModal({
             ) : (
               <Button
                 onClick={handleEnroll}
-                disabled={isLoading || !credentialRecord}
+                disabled={isLoading || (!credentialRecord && !demoMode)}
                 className="bg-emerald-600 hover:bg-emerald-500"
               >
                 {isLoading ? (

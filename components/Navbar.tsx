@@ -1,12 +1,12 @@
 "use client";
 
 import Link from "next/link";
-import { useWallet } from "@demox-labs/aleo-wallet-adapter-react";
-import { WalletMultiButton } from "@demox-labs/aleo-wallet-adapter-reactui";
-import { Shield, FlaskConical } from "lucide-react";
+import { useWallet } from "@provablehq/aleo-wallet-adaptor-react";
+import { WalletMultiButton } from "@provablehq/aleo-wallet-adaptor-react-ui";
+import { Shield, FlaskConical, History } from "lucide-react";
 
 export function Navbar() {
-  const { publicKey } = useWallet();
+  const { connected } = useWallet();
 
   return (
     <header className="sticky top-0 z-50 border-b border-white/10 bg-black/80 backdrop-blur-md">
@@ -20,7 +20,7 @@ export function Navbar() {
           <Link href="/trials" className="hover:text-white transition">
             Browse Trials
           </Link>
-          {publicKey && (
+          {connected && (
             <>
               <Link
                 href="/sponsor"
@@ -39,6 +39,13 @@ export function Navbar() {
                 className="hover:text-white transition"
               >
                 Results
+              </Link>
+              <Link
+                href="/history"
+                className="hover:text-white transition flex items-center gap-1"
+              >
+                <History className="h-4 w-4" />
+                History
               </Link>
             </>
           )}
