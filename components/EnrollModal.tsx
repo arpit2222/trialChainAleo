@@ -18,10 +18,11 @@ import type { Trial } from "@/types";
 
 interface EnrollModalProps {
   trial: Trial;
-  credentialRecord: string | null;
+  credentialRecord: any | null;
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onSuccess?: () => void;
+  onLoadCredentials?: () => void;
 }
 
 export function EnrollModal({
@@ -30,6 +31,7 @@ export function EnrollModal({
   open,
   onOpenChange,
   onSuccess,
+  onLoadCredentials,
 }: EnrollModalProps) {
   const { enrollPatient } = useTrialChain();
   const { txState, startPolling, reset } = usePolling();
@@ -59,8 +61,11 @@ export function EnrollModal({
         : await hashString("");
       const compensationMicros = BigInt(trial.compensationUsdc) * 1_000_000n;
 
+      // Pass the full record object — enrollPatient will format it
+      console.log("[EnrollModal] Using credential record:", credentialRecord);
+
       const txId = await enrollPatient(
-        credentialRecord || "",
+        credentialRecord,
         trial.id,
         trial.minAge,
         trial.maxAge,
@@ -132,10 +137,18 @@ export function EnrollModal({
           </div>
 
           {!credentialRecord && !demoMode && (
-            <p className="text-sm text-amber-400">
-              ⚠ No PatientCredential found in your wallet. You need a credential
-              issued by a hospital/IRB before enrolling.
-            </p>
+            <div className="space-y-2">
+              <p className="text-sm text-amber-400">
+                ⚠ No PatientCredential loaded. Click below to load from your wallet.
+              </p>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={onLoadCredentials}
+              >
+                Load Credentials from Wallet
+              </Button>
+            </div>
           )}
 
           {isConfirmed && (

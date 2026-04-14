@@ -3,6 +3,7 @@ import { useCallback } from "react";
 import { PROGRAM_ID } from "@/constants/program";
 import { hashString, generateRandomField } from "@/lib/crypto";
 import { getCurrentBlockHeight, fieldInput, u8Input, u32Input, u64Input } from "@/lib/aleo";
+import { getRecordCiphertextFromTx } from "@/lib/api";
 import type { RegisterTrialInput, IssueCredentialInput } from "@/types";
 
 // Helper to save transaction to localStorage history
@@ -86,7 +87,7 @@ export function useTrialChain() {
   };
 
   const enrollPatient = async (
-    credentialRecord: string,
+    credentialRecord: any,
     trialId: string,
     expectedMinAge: number,
     expectedMaxAge: number,
@@ -96,14 +97,43 @@ export function useTrialChain() {
     if (!connected || !executeTransaction)
       throw new Error("Wallet not connected");
 
+    // Get record ciphertext from transaction - this is what Leo Wallet needs
+    // Known credential issuance transaction ID
+    const CREDENTIAL_TX_ID = "at16utqvunrevgw7fglgzrxtcutsltjgr3xcwug9rnkzs6wyx0xhu9qmusx9g";
+    
+    const ciphertext = await getRecordCiphertextFromTx(CREDENTIAL_TX_ID, "PatientCredential");
+    if (!ciphertext) {
+      throw new Error("Could not fetch record ciphertext. The credential may have been spent or the tx is not indexed yet.");
+    }
+    
+    console.log("[TrialChain] Using record ciphertext from tx:", ciphertext.slice(0, 50) + "...");
+    
+    // Try multiple record input formats for Leo Wallet compatibility
+    // Format 1: Just the ciphertext string
+    const recordInput = ciphertext;
+    
+    // Format 2: Object with record data (if needed)
+    const recordObject = {
+      id: "0550b824-dbfb-5939-95f3-b665951fdebb",
+      program_id: PROGRAM_ID,
+      recordName: "PatientCredential",
+      ciphertext: ciphertext,
+    };
+    
+    console.log("[TrialChain] Record input:", recordInput);
+    console.log("[TrialChain] Record object:", recordObject);
+
+    // Try both formats - Leo Wallet may need the object as JSON string
     const inputs = [
-      credentialRecord,
+      JSON.stringify(recordObject),  // Object as JSON string
       fieldInput(trialId),
       u8Input(expectedMinAge),
       u8Input(expectedMaxAge),
       fieldInput(expectedConditionHash),
       u64Input(expectedCompensation),
     ];
+
+    console.log("[TrialChain] enroll_patient all inputs:", inputs);
 
     const tx = await executeTransaction({
       program: PROGRAM_ID,
@@ -135,14 +165,23 @@ export function useTrialChain() {
       fieldInput(credentialId),
     ];
 
+    console.log("[TrialChain] issue_credential inputs:", inputs);
+
     const tx = await executeTransaction({
       program: PROGRAM_ID,
       function: "issue_credential",
       inputs,
-      fee: 500_000,
+      fee: 1_000_000,
     });
 
-    return tx?.transactionId || "";
+    console.log("[TrialChain] issue_credential response:", tx);
+
+    const txId = tx?.transactionId || "";
+    if (txId) {
+      saveTransaction(txId, "issue_credential", "pending");
+    }
+
+    return txId;
   };
 
   const commitResults = async (

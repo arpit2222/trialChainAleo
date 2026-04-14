@@ -59,7 +59,7 @@ const SEED_TRIALS: Trial[] = [
 
 export default function TrialsPage() {
   const { connected, address } = useWallet();
-  const { credentials } = useWalletRecords();
+  const { credentials, refetch: refetchRecords } = useWalletRecords();
   const [search, setSearch] = useState("");
   const [selectedTrial, setSelectedTrial] = useState<Trial | null>(null);
   const [enrollOpen, setEnrollOpen] = useState(false);
@@ -70,7 +70,7 @@ export default function TrialsPage() {
     t.title.toLowerCase().includes(search.toLowerCase())
   );
 
-  const credentialRecord = credentials.length > 0 ? credentials[0].plaintext : null;
+  const credentialRecord = credentials.length > 0 ? credentials[0] : null;
 
   // Auto-load the user's registered trials on mount
   useEffect(() => {
@@ -199,6 +199,7 @@ export default function TrialsPage() {
           open={enrollOpen}
           onOpenChange={setEnrollOpen}
           onSuccess={() => setSelectedTrial(null)}
+          onLoadCredentials={refetchRecords}
         />
       )}
     </div>

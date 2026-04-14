@@ -126,6 +126,21 @@ trialvaultAleo/
 
 ---
 
+## On-Chain Demo Transactions
+
+| Transaction | Type | Explorer Link |
+|-------------|------|---------------|
+| **Program Deployment** | Deploy | [at1pzava35fz69v86dew66p9skxlzpuksfggwatwqlc8tr2jxkgfugqc6ad2q](https://testnet.explorer.provable.com/transaction/at1pzava35fz69v86dew66p9skxlzpuksfggwatwqlc8tr2jxkgfugqc6ad2q) |
+| **Trial 1 Registration** | `register_trial` | [at19wua7xkr3ky0df9zaz2j9dvu4gswd96gk93w8nwg8mcq0pzgqgzqhqkzme](https://testnet.explorer.provable.com/transactions?q=at19wua7xkr3ky0df9zaz2j9dvu4gswd96gk93w8nwg8mcq0pzgqgzqhqkzme&t=transactions-table) |
+| **Trial 2 Registration** | `register_trial` | [at1tat94rrd86ue27927hx4vy6ej92a5fvu7lhh5klwqhwx2c0kdyqqc69wwa](https://testnet.explorer.provable.com/transactions?q=at1tat94rrd86ue27927hx4vy6ej92a5fvu7lhh5klwqhwx2c0kdyqqc69wwa&t=transactions-table) |
+| **Credential Issuance** | `issue_credential` | [at16utqvunrevgw7fglgzrxtcutsltjgr3xcwug9rnkzs6wyx0xhu9qmusx9g](https://testnet.explorer.provable.com/transaction/at16utqvunrevgw7fglgzrxtcutsltjgr3xcwug9rnkzs6wyx0xhu9qmusx9g) |
+
+**Trial IDs:**
+- Trial 1: `1975990926371624392613934817234498750441115264165644470795261778214522639715`
+- Trial 2: `2584780927310332760886810506057148741907627745285309466315042444442406030880`
+
+---
+
 ## Getting Started
 
 ### Prerequisites

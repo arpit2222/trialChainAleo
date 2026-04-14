@@ -69,6 +69,34 @@ export async function getLatestHeight(): Promise<number> {
   return Number(await res.json());
 }
 
+// Fetch record ciphertext from a transaction output
+export async function getRecordCiphertextFromTx(
+  txId: string,
+  recordName: string
+): Promise<string | null> {
+  try {
+    const res = await fetch(`${BASE}/transaction/${txId}`);
+    if (!res.ok) return null;
+    const data = await res.json();
+    
+    // Look through execution transitions for the record output
+    const transitions = data.execution?.transitions || [];
+    for (const transition of transitions) {
+      if (transition.program !== PROGRAM_ID) continue;
+      
+      for (const output of transition.outputs || []) {
+        if (output.type === "record" && output.value) {
+          // The record value is the ciphertext
+          return output.value;
+        }
+      }
+    }
+    return null;
+  } catch {
+    return null;
+  }
+}
+
 // Parse Aleo struct string like "{ field1: value1, field2: value2 }"
 function parseAleoStruct(raw: string): Record<string, string> {
   const result: Record<string, string> = {};

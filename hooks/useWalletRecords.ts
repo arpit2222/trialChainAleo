@@ -14,20 +14,45 @@ export function useWalletRecords() {
     setLoading(true);
     try {
       const all = await requestRecords(PROGRAM_ID);
+      console.log("[WalletRecords] Raw records:", all);
+      console.log("[WalletRecords] Number of records:", (all as any[])?.length);
+
       const creds: any[] = [];
       const rcpts: any[] = [];
       const keys: any[] = [];
 
       for (const record of all as any[]) {
-        const plaintext = record.plaintext || "";
-        if (plaintext.includes("PatientCredential")) {
+        console.log("[WalletRecords] Record:", JSON.stringify(record, null, 2));
+        console.log("[WalletRecords] All keys:", Object.keys(record));
+        console.log("[WalletRecords] Record prototype keys:", Object.getOwnPropertyNames(record));
+        if (record.data) console.log("[WalletRecords] Data keys:", Object.keys(record.data));
+        console.log("[WalletRecords] Has nonce?", record.nonce, record._nonce, record.data?._nonce);
+        console.log("[WalletRecords] Has ciphertext?", record.ciphertext, record.recordCiphertext);
+        console.log("[WalletRecords] Has plaintext?", record.plaintext);
+        const recordName = record.recordName || "";
+        const recordStr = typeof record === "string" ? record : JSON.stringify(record);
+
+        // Build a plaintext string from the data object if not already present
+        if (!record.plaintext && record.data) {
+          const dataEntries = Object.entries(record.data)
+            .filter(([k]) => k !== "_version")
+            .map(([k, v]) => `${k}: ${v}`)
+            .join(", ");
+          record.plaintext = `${recordName} { ${dataEntries} }`;
+        }
+
+        console.log("[WalletRecords] recordName:", recordName, "plaintext:", record.plaintext);
+
+        if (recordName === "PatientCredential" || recordStr.includes("credential_id")) {
           creds.push(record);
-        } else if (plaintext.includes("EnrollmentReceipt")) {
+        } else if (recordName === "EnrollmentReceipt" || recordStr.includes("nullifier")) {
           rcpts.push(record);
-        } else if (plaintext.includes("SponsorKey")) {
+        } else if (recordName === "SponsorKey" || recordStr.includes("salt")) {
           keys.push(record);
         }
       }
+
+      console.log("[WalletRecords] Credentials:", creds.length, "Receipts:", rcpts.length, "Keys:", keys.length);
 
       setCredentials(creds);
       setReceipts(rcpts);
@@ -39,9 +64,8 @@ export function useWalletRecords() {
     }
   }, [connected, address, requestRecords]);
 
-  useEffect(() => {
-    fetchRecords();
-  }, [fetchRecords]);
+  // Don't auto-fetch — only fetch when user clicks Refresh
+  // This prevents the Leo Wallet "Share records" popup on every page load
 
   return {
     credentials,

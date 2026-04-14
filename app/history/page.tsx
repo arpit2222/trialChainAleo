@@ -26,7 +26,7 @@ export default function HistoryPage() {
         id: "at19wua7xkr3ky0df9zaz2j9dvu4gswd96gk93w8nwg8mcq0pzgqgzqhqkzme",
         type: "register_trial",
         status: "confirmed",
-        timestamp: Date.now() - 86400000, // 1 day ago
+        timestamp: Date.now() - 86400000,
         trialId: "1975990926371624392613934817234498750441115264165644470795261778214522639715",
         trialTitle: "Phase III Diabetes Study (CLI)",
       },
@@ -34,9 +34,16 @@ export default function HistoryPage() {
         id: "at1tat94rrd86ue27927hx4vy6ej92a5fvu7lhh5klwqhwx2c0kdyqqc69wwa",
         type: "register_trial",
         status: "confirmed",
-        timestamp: Date.now() - 3600000, // 1 hour ago
+        timestamp: Date.now() - 3600000,
         trialId: "2584780927310332760886810506057148741907627745285309466315042444442406030880",
         trialTitle: "Phase III Diabetes Study (Leo Wallet)",
+      },
+      {
+        id: "at16utqvunrevgw7fglgzrxtcutsltjgr3xcwug9rnkzs6wyx0xhu9qmusx9g",
+        type: "issue_credential",
+        status: "confirmed",
+        timestamp: Date.now() - 300000,
+        trialTitle: "PatientCredential (Self-issued)",
       },
     ];
 
