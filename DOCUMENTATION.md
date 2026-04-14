@@ -575,8 +575,6 @@ record1qvqsq3n3dad7hethl2t3a0ntvdd7njcgv0usx2lrtzwaf8krah95tkc9q59kjumnw4jhyhmgv
 - ✅ **Demo Transactions**: 4+ transactions confirmed on-chain
 - ✅ **Documentation**: Complete technical docs (this file)
 - ✅ **README**: Quick start guide
-- ✅ **Video Demo**: (record and upload)
-- ✅ **GitHub Repo**: Public repository with code
 
 ---
 
